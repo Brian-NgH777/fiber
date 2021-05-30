@@ -2,11 +2,12 @@ package booking
 
 import (
 	"context"
+	"log"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
-	"log"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -21,12 +22,13 @@ type MongoInstance struct {
 }
 
 var mg MongoInstance
-// const mongoURI = "mongodb+srv://pttrainer:NmSJWnnBmApV5sEu@maincluster.gkfe6.mongodb.net/pttrainer?authSource=admin&replicaSet=atlas-u555p7-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true"
+
 const (
-	Active = "active"
+	Active   = "active"
 	InActive = "inactive"
-	dbName = "pttrainer"
-	mongoURI = "mongodb://localhost:27017/" + dbName
+	dbName   = "pttrainer"
+	mongoURI = "mongodb+srv://pttrainer:NmSJWnnBmApV5sEu@maincluster.gkfe6.mongodb.net/pttrainer?authSource=admin&replicaSet=atlas-u555p7-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true"
+	// mongoURI = "mongodb://localhost:27017/" + dbName
 )
 
 type Booking struct {
