@@ -3,10 +3,21 @@ package main
 import (
 	b "fiber/booking"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 )
+
+func init() {
+
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 func main() {
 	// Connect to the database
@@ -42,5 +53,5 @@ func main() {
 		}
 		return c.Status(201).JSON(result)
 	})
-	app.Listen(":5000")
+	app.Listen(os.Getenv("EDITOR"))
 }
