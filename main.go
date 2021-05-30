@@ -16,6 +16,10 @@ func main() {
 
 	app := fiber.New()
 
+	app.Get("/ping", func(c *fiber.Ctx) error {
+		return c.Status(201).JSON("do re mi fa son")
+	})
+
 	app.Post("/api/booking", func(c *fiber.Ctx) error {
 		booking := new(b.Booking)
 		if err := c.BodyParser(booking); err != nil {
@@ -38,6 +42,5 @@ func main() {
 		}
 		return c.Status(201).JSON(result)
 	})
-
 	app.Listen(":3000")
-}
+},
