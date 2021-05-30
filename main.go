@@ -2,21 +2,18 @@ package main
 
 import (
 	b "fiber/booking"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
 	}
-
 	// Connect to the database
 	if err := b.Connect(); err != nil {
 		log.Fatal(err)
@@ -50,12 +47,6 @@ func main() {
 		}
 		return c.Status(201).JSON(result)
 	})
-
-	port := os.Getenv("PORT")
-	fmt.Println("portportportport", port)
-	if port != "5000" {
-		port = "3000"
-	}
 
 	app.Listen(":" + port)
 }
