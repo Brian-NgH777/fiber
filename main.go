@@ -53,5 +53,11 @@ func main() {
 		}
 		return c.Status(201).JSON(result)
 	})
-	app.Listen(os.Getenv("EDITOR"))
+
+	port := os.Getenv("PORT")
+	if port != "5000" {
+		port = "3000"
+	}
+
+	app.Listen(":" + port)
 }
