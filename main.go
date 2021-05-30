@@ -2,6 +2,7 @@ package main
 
 import (
 	b "fiber/booking"
+	"fmt"
 	"log"
 	"os"
 
@@ -10,16 +11,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func init() {
-
-	err := godotenv.Load(".env")
-
+func main() {
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-}
 
-func main() {
 	// Connect to the database
 	if err := b.Connect(); err != nil {
 		log.Fatal(err)
@@ -55,6 +52,7 @@ func main() {
 	})
 
 	port := os.Getenv("PORT")
+	fmt.Println("portportportport", port)
 	if port != "5000" {
 		port = "3000"
 	}
