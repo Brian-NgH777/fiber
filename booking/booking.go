@@ -34,7 +34,6 @@ const (
 type Booking struct {
 	ID         primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	ClientID   primitive.ObjectID `json:"bClientId,omitempty" bson:"bClientId,omitempty"`
-	PtID       primitive.ObjectID `json:"bPtId,omitempty" bson:"bPtId,omitempty"`
 	TimeSlotID primitive.ObjectID `json:"bTimeSlotId,omitempty" bson:"bTimeSlotId,omitempty"`
 	CreatedAt  time.Time          `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
 	UpdatedAt  time.Time          `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`

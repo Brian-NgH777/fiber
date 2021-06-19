@@ -6,10 +6,16 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("$PORT must be set")
