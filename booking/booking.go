@@ -64,7 +64,7 @@ func CreateBooking(ctx context.Context, booking *Booking) (*Booking, error) {
 
 		booking.CreatedAt = time.Now().UTC()
 		booking.UpdatedAt = time.Now().UTC()
-		booking.Status = bkInActive
+		booking.Status = bkPending
 
 		_, err = collectionBooking.InsertOne(ctx, booking)
 		if err != nil {
