@@ -12,6 +12,7 @@ type MongoInstance struct {
 }
 
 var mg MongoInstance
+
 // config mongo
 const (
 	dbName   = "pttrainer"
@@ -21,7 +22,8 @@ const (
 
 // status timeslots
 const (
-	tsActive  = "active"
+	tsActive = "active"
+	tsCompleted = "completed"
 )
 
 // status bookings
@@ -36,4 +38,10 @@ type Booking struct {
 	Status     string             `json:"bStatus,omitempty" bson:"bStatus,omitempty"`
 	CreatedAt  time.Time          `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
 	UpdatedAt  time.Time          `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
+}
+
+type TimeSlot struct {
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	MaxClient int64              `json:"tMaxClient,omitempty" bson:"tMaxClient,omitempty"`
+	Status    string             `json:"tStatus,omitempty" bson:"tStatus,omitempty"`
 }

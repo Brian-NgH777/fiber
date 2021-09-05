@@ -2,6 +2,7 @@ package booking
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -62,6 +63,26 @@ func CreateBooking(ctx context.Context, booking *Booking) (*Booking, error) {
 			return err
 		}
 
+		var result TimeSlot
+		err = collectionTimeslots.FindOne(
+			ctx,
+			bson.M{"_id": booking.TimeSlotID}).Decode(&result)
+		if err != nil {
+			sctx.AbortTransaction(sctx)
+			return err
+		}
+
+		count, err := collectionBooking.CountDocuments(ctx, bson.M{"bTimeSlotId": booking.TimeSlotID})
+		if err != nil {
+			sctx.AbortTransaction(sctx)
+			return err
+		}
+
+		if count >= result.MaxClient {
+			sctx.AbortTransaction(sctx)
+			return errors.New("Class is ffan ull")
+		}
+
 		booking.CreatedAt = time.Now().UTC()
 		booking.UpdatedAt = time.Now().UTC()
 		booking.Status = bkPending
@@ -72,17 +93,20 @@ func CreateBooking(ctx context.Context, booking *Booking) (*Booking, error) {
 			return err
 		}
 
-		data, err := collectionTimeslots.UpdateOne(
-			ctx,
-			bson.M{"_id": booking.TimeSlotID},
-			bson.D{
-				{"$set", bson.D{{"tStatus", tsActive}}},
-				{"$set", bson.D{{"updatedAt", time.Now().UTC()}}},
-			})
-		if err != nil || data.ModifiedCount == 0 {
-			sctx.AbortTransaction(sctx)
-			return err
+		if result.Status != tsActive && result.Status != tsCompleted {
+			data, err := collectionTimeslots.UpdateOne(
+				ctx,
+				bson.M{"_id": booking.TimeSlotID},
+				bson.D{
+					{"$set", bson.D{{"tStatus", tsActive}}},
+					{"$set", bson.D{{"updatedAt", time.Now().UTC()}}},
+				})
+			if err != nil || data.ModifiedCount == 0 {
+				sctx.AbortTransaction(sctx)
+				return err
+			}
 		}
+
 
 		for {
 			err = sctx.CommitTransaction(sctx)
