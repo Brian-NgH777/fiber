@@ -18,6 +18,5 @@ func StartService() {
 	server := router.New()
 
 	log.Info("Service is running")
-
 	server.Start(5000)
 } 

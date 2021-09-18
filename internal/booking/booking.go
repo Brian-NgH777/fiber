@@ -3,6 +3,7 @@ package booking
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
@@ -14,6 +15,32 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+// status timeslots
+const (
+	tsActive = "active"
+	tsCompleted = "completed"
+)
+
+// status bookings
+const (
+	bkPending = "pending"
+)
+
+type Booking struct {
+	ID         primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	ClientID   primitive.ObjectID `json:"bClientId,omitempty" bson:"bClientId,omitempty"`
+	TimeSlotID primitive.ObjectID `json:"bTimeSlotId,omitempty" bson:"bTimeSlotId,omitempty"`
+	Status     string             `json:"bStatus,omitempty" bson:"bStatus,omitempty"`
+	CreatedAt  time.Time          `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
+	UpdatedAt  time.Time          `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
+}
+
+type TimeSlot struct {
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	MaxClient int64              `json:"tMaxClient,omitempty" bson:"tMaxClient,omitempty"`
+	Status    string             `json:"tStatus,omitempty" bson:"tStatus,omitempty"`
+}
 
 func(mg *MongoInstance) CreateBooking(ctx context.Context, booking *Booking) (*Booking, error) {
 	opt := options.Index()

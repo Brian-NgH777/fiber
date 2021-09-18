@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="fiber" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="fiber" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="serve" />
+    <sudo value="true" />
+    <kind value="FILE" />
+    <package value="fiber" />
+    <directory value="$PROJECT_DIR$/" />
+    <filePath value="$PROJECT_DIR$/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

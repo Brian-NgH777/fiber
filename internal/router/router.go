@@ -3,38 +3,87 @@ package router
 import (
 	b "fiber/internal/booking"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/golang-jwt/jwt/v4"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
+	"os"
 )
 
-func (r *router) Start(port int) {
+type BookingBody struct {
+	ClientID   primitive.ObjectID `json:"clientId,omitempty" bson:"clientId,omitempty" validate:"required"`
+	TimeSlotID primitive.ObjectID `json:"timeSlotId,omitempty" bson:"timeSlotId,omitempty" validate:"required"`
+}
 
-	r.app.Use(cors.New())
+func (r *router) Start(port int) {
 	r.app.Use(limiter.New())
 	r.app.Use(logger.New())
+
+	// JWT Middleware
+	r.app.Use(jwtware.New(jwtware.Config{
+		SigningKey:               []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
+		SigningMethod:            "HS256",
+		ContextKey:               "data",
+		TokenLookup:              "header:Authorization",
+		AuthScheme:               "Bearer",
+	}))
 
 	r.app.Get("/monitor", monitor.New())
 
 	r.app.Get("/ping", func(c *fiber.Ctx) error {
-		return c.Status(201).JSON("{}")
+		return c.Status(fiber.StatusOK).
+			JSON(fiber.Map{"ok": "true", "msg": "ping", "data": "{}"})
 	})
 
-	api := r.app.Group("/api", MiddlewareAuth)
+	api := r.app.Group("/api", func(c *fiber.Ctx) error {
+		data := c.Locals("data").(*jwt.Token)
+		claims := data.Claims.(jwt.MapClaims)
+	 	user := claims["data"].(map[string]interface{})
+		id, err := primitive.ObjectIDFromHex(user["_id"].(string))
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
+		count, err := r.mongo.CountUser(c.Context(), &b.User{ID: id})
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
+		if count == 0 {
+			return  c.Status(fiber.StatusUnauthorized).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
+	 	c.Next()
+		return nil
+	})
 
-	api.Post("/api/booking", func(c *fiber.Ctx) error {
-		booking := new(b.Booking)
+	api.Post("/booking", func(c *fiber.Ctx) error {
+		booking := new(BookingBody)
 		if err := c.BodyParser(booking); err != nil {
-			return c.Status(400).SendString(err.Error())
+			return  c.Status(fiber.StatusBadRequest).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
+
+
+		validate := validator.New()
+		err := validate.Struct(booking)
+		if err != nil {
+			return  c.Status(fiber.StatusBadRequest).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
 		}
 
 		g, gctx := errgroup.WithContext(c.Context())
 		var result *b.Booking
 		g.Go(func() error {
-			data, err := r.mongo.CreateBooking(gctx, booking)
+			data, err := r.mongo.CreateBooking(gctx, &b.Booking{
+				ClientID:   booking.ClientID,
+				TimeSlotID: booking.TimeSlotID,
+			})
 			if err != nil {
 				return err
 			}
@@ -42,9 +91,11 @@ func (r *router) Start(port int) {
 			return nil
 		})
 		if err := g.Wait(); err != nil {
-			return c.Status(500).SendString(err.Error())
+			return  c.Status(fiber.StatusInternalServerError).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
 		}
-		return c.Status(201).JSON(result)
+		return c.Status(fiber.StatusCreated).
+			JSON(fiber.Map{"ok": "true", "msg": "", "data": ""})
 	})
 
 	r.app.Listen(fmt.Sprintf(":%d", port))
