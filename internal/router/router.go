@@ -41,24 +41,23 @@ func (r *router) Start(port int) {
 	})
 
 	api := r.app.Group("/api", func(c *fiber.Ctx) error {
-		fmt.Println("sadsad")
-		//data := c.Locals("data").(*jwt.Token)
-		//claims := data.Claims.(jwt.MapClaims)
-	 	//user := claims["data"].(map[string]interface{})
-		//id, err := primitive.ObjectIDFromHex(user["_id"].(string))
-		//if err != nil {
-		//	return c.Status(fiber.StatusUnauthorized).
-		//		JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		//}
-		//count, err := r.mongo.CountUser(c.Context(), &b.User{ID: id})
-		//if err != nil {
-		//	return c.Status(fiber.StatusUnauthorized).
-		//		JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		//}
-		//if count == 0 {
-		//	return  c.Status(fiber.StatusUnauthorized).
-		//		JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		//}
+		data := c.Locals("data").(*jwt.Token)
+		claims := data.Claims.(jwt.MapClaims)
+	 	user := claims["data"].(map[string]interface{})
+		id, err := primitive.ObjectIDFromHex(user["_id"].(string))
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
+		count, err := r.mongo.CountUser(c.Context(), &b.User{ID: id})
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
+		if count == 0 {
+			return  c.Status(fiber.StatusUnauthorized).
+				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		}
 	 	c.Next()
 		return nil
 	})
