@@ -3,7 +3,6 @@ module fiber
 go 1.15
 
 require (
-	github.com/arsmn/fiber-swagger/v2 v2.17.0
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/gofiber/fiber/v2 v2.18.0
 	github.com/gofiber/jwt/v3 v3.1.0
