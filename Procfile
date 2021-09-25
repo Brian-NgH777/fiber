@@ -1,1 +1,1 @@
-web: bin/fiber
+web: go run main.go serve
