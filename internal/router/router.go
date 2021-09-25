@@ -3,20 +3,20 @@ package router
 import (
 	b "fiber/internal/booking"
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
 	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
 )
 
 type BookingBody struct {
-	ClientID   primitive.ObjectID `json:"clientId,omitempty" bson:"clientId,omitempty" validate:"required"`
-	TimeSlotID primitive.ObjectID `json:"timeSlotId,omitempty" bson:"timeSlotId,omitempty" validate:"required"`
+	ClientID   string `json:"clientId"`
+	TimeSlotID string `json:"timeSlotId"`
 }
 
 func (r *router) Start(port int) {
@@ -58,21 +58,13 @@ func (r *router) Start(port int) {
 			return  c.Status(fiber.StatusUnauthorized).
 				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
 		}
-	 	c.Next()
+		c.Next()
 		return nil
 	})
 
 	api.Post("/booking", func(c *fiber.Ctx) error {
-		booking := new(BookingBody)
-		if err := c.BodyParser(booking); err != nil {
-			return  c.Status(fiber.StatusBadRequest).
-				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		}
-
-
-		validate := validator.New()
-		err := validate.Struct(booking)
-		if err != nil {
+		var booking BookingBody
+		if err := c.BodyParser(&booking); err != nil {
 			return  c.Status(fiber.StatusBadRequest).
 				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
 		}
@@ -80,9 +72,11 @@ func (r *router) Start(port int) {
 		g, gctx := errgroup.WithContext(c.Context())
 		var result *b.Booking
 		g.Go(func() error {
+			clientID,_ :=   primitive.ObjectIDFromHex(booking.ClientID)
+			timeSlotID,_ :=   primitive.ObjectIDFromHex(booking.TimeSlotID)
 			data, err := r.mongo.CreateBooking(gctx, &b.Booking{
-				ClientID:   booking.ClientID,
-				TimeSlotID: booking.TimeSlotID,
+				ClientID:   clientID,
+				TimeSlotID: timeSlotID,
 			})
 			if err != nil {
 				return err
