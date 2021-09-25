@@ -4,6 +4,8 @@ import (
 	"fiber/internal/router"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
+	"strconv"
 )
  
 var serveCmd = &cobra.Command{ 
@@ -18,5 +20,10 @@ func StartService() {
 	server := router.New()
 
 	log.Info("Service is running")
-	server.Start(5000)
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != err {
+		log.Error("ENV PORT failed")
+	}
+
+	server.Start(port)
 } 
