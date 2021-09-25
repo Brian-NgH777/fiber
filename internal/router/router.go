@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	jwtware "github.com/gofiber/jwt/v3"
-	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
-	"os"
 )
 
 type BookingBody struct {
@@ -23,10 +22,11 @@ type BookingBody struct {
 func (r *router) Start(port int) {
 	r.app.Use(limiter.New())
 	r.app.Use(logger.New())
+	r.app.Use(cors.New())
 
 	// JWT Middleware
 	r.app.Use(jwtware.New(jwtware.Config{
-		SigningKey:               []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
+		SigningKey:               []byte("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"),
 		SigningMethod:            "HS256",
 		ContextKey:               "data",
 		TokenLookup:              "header:Authorization",
@@ -41,23 +41,24 @@ func (r *router) Start(port int) {
 	})
 
 	api := r.app.Group("/api", func(c *fiber.Ctx) error {
-		data := c.Locals("data").(*jwt.Token)
-		claims := data.Claims.(jwt.MapClaims)
-	 	user := claims["data"].(map[string]interface{})
-		id, err := primitive.ObjectIDFromHex(user["_id"].(string))
-		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).
-				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		}
-		count, err := r.mongo.CountUser(c.Context(), &b.User{ID: id})
-		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).
-				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		}
-		if count == 0 {
-			return  c.Status(fiber.StatusUnauthorized).
-				JSON(fiber.Map{"ok": "false", "msg": err.Error()})
-		}
+		fmt.Println("sadsad")
+		//data := c.Locals("data").(*jwt.Token)
+		//claims := data.Claims.(jwt.MapClaims)
+	 	//user := claims["data"].(map[string]interface{})
+		//id, err := primitive.ObjectIDFromHex(user["_id"].(string))
+		//if err != nil {
+		//	return c.Status(fiber.StatusUnauthorized).
+		//		JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		//}
+		//count, err := r.mongo.CountUser(c.Context(), &b.User{ID: id})
+		//if err != nil {
+		//	return c.Status(fiber.StatusUnauthorized).
+		//		JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		//}
+		//if count == 0 {
+		//	return  c.Status(fiber.StatusUnauthorized).
+		//		JSON(fiber.Map{"ok": "false", "msg": err.Error()})
+		//}
 	 	c.Next()
 		return nil
 	})
